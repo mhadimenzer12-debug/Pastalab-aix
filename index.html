@@ -52,4 +52,12 @@
 </main>
 <footer class="footer"><div class="wrap"><b>PASTA LAB</b> • Pâtes & gnocchis frais • Aix-en-Provence / Les Milles<br><span class="small">À emporter & livraison uniquement. Prix et informations susceptibles d’évoluer.</span><br><a class="small" href="https://performance.pastalab-aix.com/" style="color:#e7b64a">Découvrir Pasta Lab by Performance →</a></div></footer>
 <a class="btn red mobile-order" href="sms:+33663299065?body=Bonjour%20Pasta%20Lab%20%F0%9F%91%8B%20Je%20souhaite%20passer%20une%20commande.%0ANom%20%3A%20%0ACommande%20%3A%20%0ARetrait%20aux%20Milles%20%2F%20Livraison%20%3A%20%0AAdresse%20si%20livraison%20%3A%20">Commander par SMS</a>
-</body></html>
+<script>
+document.querySelectorAll('a[href^="sms:+33663299065"]').forEach(function(link) {
+  link.addEventListener('click', function() {
+    gtag('event', 'conversion', {
+      'send_to': 'AW-18372928409/7WorCK6E7ocdEJnH8rhE'
+    });
+  });
+});
+</script></body></html>
