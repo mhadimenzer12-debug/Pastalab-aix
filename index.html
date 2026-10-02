@@ -40,6 +40,22 @@
 <div class="card"><h3>Arrabbiata</h3><p>Sauce tomate épicée, ail, persil, parmesan.</p><p><b>Pâtes 11,50 €</b> • Gnocchis <b>12,90 €</b></p></div>
 <div class="card"><h3>Crème de truffe</h3><p>Crème, truffe, parmesan.</p><p><b>Pâtes 14,90 €</b> • Gnocchis <b>15,50 €</b></p></div>
 </div>
+  <button type="button" class="btn red" onclick="panier.push({id:'bolognaise-pates',quantity:1}); alert('Bolognaise pâtes ajoutée au panier');">+ Bolognaise Pâtes — 12,50 €</button>
+<button type="button" class="btn red" onclick="panier.push({id:'carbonara-pates',quantity:1}); alert('Carbonara pâtes ajoutée');">+ Carbonara Pâtes — 12,50 €</button>
+<button type="button" class="btn red" onclick="panier.push({id:'carbonara-gnocchis',quantity:1}); alert('Carbonara gnocchis ajoutée');">+ Carbonara Gnocchis — 13,50 €</button>
+
+<button type="button" class="btn red" onclick="panier.push({id:'gorgonzola-pates',quantity:1}); alert('Gorgonzola pâtes ajoutée');">+ Gorgonzola Pâtes — 12,90 €</button>
+<button type="button" class="btn red" onclick="panier.push({id:'gorgonzola-gnocchis',quantity:1}); alert('Gorgonzola gnocchis ajouté');">+ Gorgonzola Gnocchis — 13,50 €</button>
+
+<button type="button" class="btn red" onclick="panier.push({id:'pesto-pates',quantity:1}); alert('Pesto pâtes ajoutée');">+ Pesto Pâtes — 12,90 €</button>
+<button type="button" class="btn red" onclick="panier.push({id:'pesto-gnocchis',quantity:1}); alert('Pesto gnocchis ajouté');">+ Pesto Gnocchis — 13,50 €</button>
+
+<button type="button" class="btn red" onclick="panier.push({id:'arrabbiata-pates',quantity:1}); alert('Arrabbiata pâtes ajoutée');">+ Arrabbiata Pâtes — 11,50 €</button>
+<button type="button" class="btn red" onclick="panier.push({id:'arrabbiata-gnocchis',quantity:1}); alert('Arrabbiata gnocchis ajouté');">+ Arrabbiata Gnocchis — 12,90 €</button>
+
+<button type="button" class="btn red" onclick="panier.push({id:'truffe-pates',quantity:1}); alert('Crème de truffe pâtes ajoutée');">+ Crème de truffe Pâtes — 14,90 €</button>
+<button type="button" class="btn red" onclick="panier.push({id:'truffe-gnocchis',quantity:1}); alert('Crème de truffe gnocchis ajouté');">+ Crème de truffe Gnocchis — 15,50 €</button>
+<button type="button" class="btn red" onclick="panier.push({id:'bolognaise-gnocchis',quantity:1}); alert('Bolognaise gnocchis ajoutée au panier');">+ Bolognaise Gnocchis — 12,90 €</button>
 <h2 style="font-size:32px;margin-top:38px">Suppléments</h2><div class="cards"><div class="card"><h3>Fromages</h3><p>Parmesan <b>+2,00 €</b><br>Burrata <b>+3,50 €</b></p></div><div class="card"><h3>Viandes</h3><p>Bœuf haché ou poulet <b>+2,50 €</b><br>Jambon de Parme <b>+3,50 €</b></p></div><div class="card"><h3>Extra</h3><p>Truffe fraîche <b>+3,90 €</b></p></div></div>
 <h2 style="font-size:32px;margin-top:38px">Desserts</h2><div class="cards"><div class="card"><h3>Tiramisu <span class="price">4,90 €</span></h3></div><div class="card"><h3>Panna cotta <span class="price">4,50 €</span></h3></div><div class="card"><h3>Franui <span class="price">5,90 €</span></h3></div><div class="card"><h3>Moelleux au chocolat <span class="price">4,50 €</span></h3></div></div>
 <h2 style="font-size:32px;margin-top:38px">Boissons</h2><div class="cards"><div class="card"><h3>Coca-Cola / Coca-Cola Zéro <span class="price">2,50 €</span></h3></div><div class="card"><h3>Oasis Tropical / Ice Tea Pêche <span class="price">2,50 €</span></h3></div><div class="card"><h3>Cristalline 50 cl <span class="price">1,50 €</span></h3></div><div class="card"><h3>Red Bull <span class="price">3,50 €</span></h3></div><div class="card"><h3>San Pellegrino 50 cl <span class="price">2,50 €</span></h3></div><div class="card"><h3>Limonata / Aranciata <span class="price">3,00 €</span></h3></div><div class="card"><h3>Chinotto <span class="price">3,50 €</span></h3></div></div>
@@ -50,7 +66,15 @@
 <section class="section delivery" id="livraison"><div class="wrap"><div class="eyebrow">Commande directe</div><h2>Click & Collect • Livraison maison</h2><p class="sub"><b>Nous livrons à Aix-en-Provence, Éguilles, Luynes, Calas et Les Milles.</b> Les frais de livraison sont calculés selon la distance depuis Pasta Lab.</p><div class="delivery-grid"><div class="delivery-box"><b>0–5 km</b><br>3,90 €<br><span class="small">minimum 20 €</span></div><div class="delivery-box"><b>5–8 km</b><br>5,90 €<br><span class="small">minimum 30 €</span></div><div class="delivery-box"><b>8–12 km</b><br>7,90 €<br><span class="small">minimum 40 €</span></div></div><p><b>Livraison offerte jusqu’à 5 km dès 45 €.</b></p><div class="actions"><a class="btn red" href="sms:+33663299065?body=Bonjour%20Pasta%20Lab%20%F0%9F%91%8B%20Je%20souhaite%20passer%20une%20commande.%0ANom%20%3A%20%0ACommande%20%3A%20%0ARetrait%20aux%20Milles%20%2F%20Livraison%20%3A%20%0AAdresse%20si%20livraison%20%3A%20">Commander par SMS</a><a class="btn" style="background:#fff;color:#073a2d" href="tel:+33663299065">Appeler le 06 63 29 90 65</a></div></div></section>
 <section class="section"><div class="wrap info"><div><div class="eyebrow" style="color:#9b2e22">Pasta Lab — Les Milles</div><h2>Nous trouver</h2><div class="seo-copy"><p><b>850 chemin du Plan d’Aillane<br>13290 Aix-en-Provence</b></p><p>Pasta Lab est spécialisé dans les pâtes fraîches et gnocchis maison. Commandes à emporter aux Milles et livraison à Aix-en-Provence, Éguilles, Luynes, Calas et Les Milles.</p><p><a href="https://www.instagram.com/mm.pasta_lab/" rel="noopener">Instagram @mm.pasta_lab</a> • <a href="tel:+33663299065">06 63 29 90 65</a></p></div></div><div class="hours"><h3>Horaires</h3><p><b>Lundi</b><span>10:00–14:30 • 18:30–22:30</span></p><p><b>Mardi</b><span>10:00–14:30 • 18:30–22:30</span></p><p><b>Mercredi</b><span>10:00–14:30 • 18:30–22:30</span></p><p><b>Jeudi</b><span>10:00–14:30 • 18:30–22:30</span></p><p><b>Vendredi</b><span>10:00–14:30 • 18:30–22:30</span></p><p><b>Samedi</b><span>10:00–14:30 • 18:30–22:30</span></p><p><b>Dimanche</b><span>10:00–14:30 • 18:30–22:30</span></p></div></div></section>
 </main>
-<footer class="footer"><div class="wrap"><b>PASTA LAB</b> • Pâtes & gnocchis frais • Aix-en-Provence / Les Milles<br><span class="small">À emporter & livraison uniquement. Prix et informations susceptibles d’évoluer.</span><br><a class="small" href="https://performance.pastalab-aix.com/" style="color:#e7b64a">Découvrir Pasta Lab by Performance →</a></div></footer>
+<div id="panier-pastalab">
+
+  <button type="button" id="payer-panier" class="btn red">
+
+    Payer ma commande
+
+  </button>
+
+</div><footer class="footer"><div class="wrap"><b>PASTA LAB</b> • Pâtes & gnocchis frais • Aix-en-Provence / Les Milles<br><span class="small">À emporter & livraison uniquement. Prix et informations susceptibles d’évoluer.</span><br><a class="small" href="https://performance.pastalab-aix.com/" style="color:#e7b64a">Découvrir Pasta Lab by Performance →</a></div></footer>
 <a class="btn red mobile-order" href="sms:+33663299065?body=Bonjour%20Pasta%20Lab%20%F0%9F%91%8B%20Je%20souhaite%20passer%20une%20commande.%0ANom%20%3A%20%0ACommande%20%3A%20%0ARetrait%20aux%20Milles%20%2F%20Livraison%20%3A%20%0AAdresse%20si%20livraison%20%3A%20">Commander par SMS</a>
 <script>
 document.querySelectorAll('a[href^="sms:+33663299065"]').forEach(function(link) {
@@ -60,7 +84,35 @@ document.querySelectorAll('a[href^="sms:+33663299065"]').forEach(function(link) 
     });
   });
 });
-  async function payerCommande(items) {
+  const panier = [];
+
+document.getElementById("payer-panier").addEventListener("click", async () => {
+  if (panier.length === 0) {
+    alert("Ajoute d’abord des produits à ta commande.");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      "https://pastalab-paiement.mm-pastalab.workers.dev/create-payment",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cart: panier })
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.checkoutUrl) {
+      window.location.href = data.checkoutUrl;
+    } else {
+      alert("Impossible de lancer le paiement.");
+    }
+  } catch (error) {
+    alert("Erreur de connexion au paiement.");
+  }
+});
   const response = await fetch("https://pastalab-paiement.mm-pastalab.workers.dev/create-payment", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
