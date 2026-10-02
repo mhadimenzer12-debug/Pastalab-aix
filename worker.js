@@ -1,4 +1,4 @@
-const ORIGIN = "https://pastalab-aix.com";
+const ORIGIN = "https://pastalab-aix.com"; 
 
 const PRODUCTS = {
   "bolognaise-pates": ["Bolognaise — Pâtes", 12.50],
