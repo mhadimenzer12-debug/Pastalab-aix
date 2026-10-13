@@ -1,221 +1,70 @@
-const ORIGIN = "https://pastalab-aix.com"; 
-
-const PRODUCTS = {
-  "bolognaise-pates": ["Bolognaise — Pâtes", 12.50],
-  "bolognaise-gnocchis": ["Bolognaise — Gnocchis", 12.90],
-  "carbonara-pates": ["Carbonara — Pâtes", 12.50],
-  "carbonara-gnocchis": ["Carbonara — Gnocchis", 13.50],
-  "gorgonzola-pates": ["Gorgonzola — Pâtes", 12.90],
-  "gorgonzola-gnocchis": ["Gorgonzola — Gnocchis", 13.50],
-  "pesto-pates": ["Pesto tomates cerises & pignons — Pâtes", 12.90],
-  "pesto-gnocchis": ["Pesto tomates cerises & pignons — Gnocchis", 13.50],
-  "arrabbiata-pates": ["Arrabbiata — Pâtes", 11.50],
-  "arrabbiata-gnocchis": ["Arrabbiata — Gnocchis", 12.90],
-  "truffe-pates": ["Crème de truffe — Pâtes", 14.90],
-  "truffe-gnocchis": ["Crème de truffe — Gnocchis", 15.50],
-
-  "parmesan": ["Supplément Parmesan", 2.00],
-  "burrata": ["Supplément Burrata", 3.50],
-  "boeuf": ["Supplément Bœuf haché", 2.50],
-  "poulet": ["Supplément Poulet", 2.50],
-  "parme": ["Supplément Jambon de Parme", 3.50],
-  "truffe-fraiche": ["Supplément Truffe fraîche", 3.90],
-
-  "tiramisu": ["Tiramisu", 4.90],
-  "panna-cotta": ["Panna cotta", 4.50],
-  "franui": ["Franui", 5.90],
-  "moelleux": ["Moelleux chocolat", 4.50],
-
-  "coca": ["Coca-Cola", 2.50],
-  "coca-zero": ["Coca-Cola Zéro", 2.50],
-  "oasis": ["Oasis", 2.50],
-  "ice-tea": ["Ice Tea", 2.50],
-  "cristalline": ["Cristalline", 1.50],
-  "red-bull": ["Red Bull", 3.50],
-  "san-pellegrino": ["San Pellegrino", 2.50],
-  "limonata": ["Limonata", 3.00],
-  "aranciata": ["Aranciata", 3.00],
-  "chinotto": ["Chinotto", 3.50],
-
-  "pause-italienne": ["La Pause Italienne", 13.90],
-  "dolce-vita": ["La Dolce Vita", 18.90],
-  "in-due": ["In Due", 27.90],
-  "famiglia": ["La Famiglia", 45.90],
-  "grande-famiglia": ["La Grande Famiglia", 54.90]
-};
-
-function headers() {
-  return {
-    "Access-Control-Allow-Origin": ORIGIN,
-    "Access-Control-Allow-Methods": "POST,GET,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Content-Type": "application/json"
-  };
-}
-
-function reply(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: headers()
-  });
-}
-
-export default {
-  async fetch(request, env) {
-
-    if (request.method === "OPTIONS") {
-      return new Response(null, {
-        status: 204,
-        headers: headers()
-      });
-    }
-
-    const url = new URL(request.url);
-
-    if (request.method === "GET" && url.pathname === "/") {
-      return reply({
-        ok: true,
-        service: "PASTA LAB Paiement"
-      });
-    }
-
-    if (request.method !== "POST" || url.pathname !== "/create-payment") {
-      return reply({ error: "Route inconnue" }, 404);
-    }
-
-    if (!env.MOLLIE_API_KEY) {
-      return reply({ error: "Clé Mollie absente" }, 500);
-    }
-
-    let body;
-
-    try {
-      body = await request.json();
-    } catch {
-      return reply({ error: "Commande invalide" }, 400);
-    }
-
-    const cart = Array.isArray(body.cart) ? body.cart : [];
-
-    if (!cart.length) {
-      return reply({ error: "Panier vide" }, 400);
-    }
-
-    let subtotal = 0;
-    const items = [];
-
-    for (const line of cart) {
-      const product = PRODUCTS[line.id];
-      const qty = Number(line.qty);
-
-      if (!product || !Number.isInteger(qty) || qty < 1 || qty > 20) {
-        return reply({ error: "Article invalide" }, 400);
-      }
-
-      subtotal += Math.round(product[1] * 100) * qty;
-      items.push(`${qty}x ${product[0]}`);
-    }
-
-    const delivery = body.delivery || "retrait";
-
-    let deliveryFee = 0;
-
-    if (delivery === "0-5") {
-      if (subtotal < 2000) {
-        return reply({ error: "Minimum 20 € pour cette zone" }, 400);
-      }
-
-      deliveryFee = subtotal >= 4500 ? 0 : 390;
-    }
-
-    else if (delivery === "5-8") {
-      if (subtotal < 3000) {
-        return reply({ error: "Minimum 30 € pour cette zone" }, 400);
-      }
-
-      deliveryFee = 590;
-    }
-
-    else if (delivery === "8-12") {
-      if (subtotal < 4000) {
-        return reply({ error: "Minimum 40 € pour cette zone" }, 400);
-      }
-
-      deliveryFee = 790;
-    }
-
-    else if (delivery !== "retrait") {
-      return reply({ error: "Livraison invalide" }, 400);
-    }
-
-    const total = subtotal + deliveryFee;
-
-    const orderId =
-      "PL-" + Date.now().toString(36).toUpperCase();
-
-    const customer = {
-      name: String(body.customer?.name || "").slice(0, 80),
-      phone: String(body.customer?.phone || "").slice(0, 40),
-      email: String(body.customer?.email || "").slice(0, 120),
-      address: String(body.customer?.address || "").slice(0, 180)
-    };
-
-    const payment = {
-      amount: {
-        currency: "EUR",
-        value: (total / 100).toFixed(2)
-      },
-
-      description: `PASTA LAB ${orderId}`,
-
-      redirectUrl:
-        `https://pastalab-aix.com/?paiement=retour&commande=${orderId}`,
-
-      metadata: {
-        orderId,
-        customer,
-        items,
-        delivery,
-        total: (total / 100).toFixed(2)
-      }
-    };
-
-    const mollieResponse = await fetch(
-      "https://api.mollie.com/v2/payments",
-      {
-        method: "POST",
-
-        headers: {
-          "Authorization": `Bearer ${env.MOLLIE_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify(payment)
-      }
-    );
-
-    const result = await mollieResponse.json();
-
-    if (!mollieResponse.ok) {
-      return reply({
-        error: "Erreur Mollie"
-      }, 502);
-    }
-
-    const checkoutUrl =
-      result?._links?.checkout?.href;
-
-    if (!checkoutUrl) {
-      return reply({
-        error: "Lien Mollie introuvable"
-      }, 502);
-    }
-
-    return reply({
-      ok: true,
-      orderId,
-      total: (total / 100).toFixed(2),
-      checkoutUrl
-    });
+// Cloudflare Worker — déploiement après configuration KV, Mollie et e-mail.
+const ORIGIN='https://pastalab-aix.com';
+const BASE={bolognaise:[1250,1290],carbonara:[1250,1350],gorgonzola:[1290,1350],pesto:[1290,1350],arrabbiata:[1150,1290],truffe:[1490,1550]};
+const EXTRAS={parmesan:200,burrata:350,boeuf:250,poulet:250,parme:350,'truffe-fraiche':390};
+const LABELS={bolognaise:'Bolognaise',carbonara:'Carbonara',gorgonzola:'Gorgonzola',pesto:'Pesto tomates cerises & pignons',arrabbiata:'Arrabbiata',truffe:'Crème de truffe'};
+const cors={'Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Methods':'POST,GET,OPTIONS','Access-Control-Allow-Headers':'Content-Type','Content-Type':'application/json'};
+const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:cors});
+const cents=n=>(n/100).toFixed(2);
+async function mollie(id,env){const r=await fetch('https://api.mollie.com/v2/payments/'+encodeURIComponent(id),{headers:{Authorization:'Bearer '+env.MOLLIE_API_KEY}});if(!r.ok)throw Error('Mollie '+r.status);return r.json()}
+async function notify(order,env){if(!env.RESEND_API_KEY||!env.MAIL_FROM)throw Error('E-mail non configuré');const lines=order.items.map(x=>`${x.qty} × ${x.label} — ${cents(x.amount*x.qty)} €`).join('\n');const body=`Commande payée ${order.orderId}\n\n${lines}\n\nTotal : ${cents(order.total)} €\nMode : ${order.delivery}\nNom : ${order.customer.name}\nTéléphone : ${order.customer.phone}\nE-mail : ${order.customer.email}\nAdresse : ${order.customer.address}\nNote : ${order.customer.notes}`;const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+env.RESEND_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({from:env.MAIL_FROM,to:['mm.pastalab@gmail.com'],subject:'Commande Pasta Lab payée — '+order.orderId,text:body})});if(!r.ok)throw Error('Échec e-mail '+r.status)}
+export default {async fetch(request,env){
+ const url=new URL(request.url);
+ if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
+ if(request.method==='GET'&&url.pathname==='/')return json({ok:true,service:'Pasta Lab'});
+ if(!env.MOLLIE_API_KEY||!env.ORDERS)return json({error:'Configuration serveur incomplète'},503);
+ if(request.method==='POST'&&url.pathname==='/create-payment'){
+  if(request.headers.get('Origin')!==ORIGIN)return json({error:'Origine non autorisée'},403);
+  let body;try{body=await request.json()}catch{return json({error:'Données invalides'},400)}
+  const cart=body.cart;if(!Array.isArray(cart)||cart.length<1||cart.length>50)return json({error:'Panier invalide'},400);
+  let subtotal=0;const items=[];
+  const DRINKS={coca:['Coca-Cola',250],'coca-zero':['Coca-Cola Zéro',250],oasis:['Oasis Tropical',250],ice_tea:['Ice Tea Pêche',250],cristalline:['Cristalline 50 cl',150],redbull:['Red Bull',350],san_pellegrino:['San Pellegrino 50 cl',250],limonata:['Limonata',300],aranciata:['Aranciata',300],chinotto:['Chinotto',350]};
+  const DESSERTS={tiramisu:['Tiramisu',490],panna_cotta:['Panna cotta',450],moelleux:['Moelleux au chocolat',450],mousse:['Mousse au chocolat',590]};
+  const FORMULAS={pause:['La Pause Italienne',1390,1,1,0],dolce:['La Dolce Vita',1890,1,1,1],due:['In Due',2790,2,2,0],famiglia:['La Famiglia',4590,4,0,0],grande:['La Grande Famiglia',5490,4,4,0]};
+  const SURCHARGE={arrabbiata:0,bolognaise:0,carbonara:0,gorgonzola:100,pesto:100,truffe:300};
+  const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
+  const validPlate=p=>p&&typeof p==='object'&&own(BASE,p.recipe)&&['pates','gnocchis'].includes(p.base)&&(p.base==='gnocchis'?p.pasta===null:['rigatoni','tagliatelles'].includes(p.pasta));
+  for(const x of cart){
+   if(!x||typeof x!=='object'||!Number.isInteger(x.qty)||x.qty<1||x.qty>20)return json({error:'Quantité invalide'},400);
+   let unit,label;
+   if(x.type==='plat'){
+    if(!validPlate(x)||!Array.isArray(x.extras)||x.extras.length>6||new Set(x.extras).size!==x.extras.length||x.extras.some(e=>!own(EXTRAS,e)))return json({error:'Plat invalide'},400);
+    unit=BASE[x.recipe][x.base==='pates'?0:1]+x.extras.reduce((n,e)=>n+EXTRAS[e],0);
+    label=LABELS[x.recipe]+' — '+(x.pasta||'Gnocchis')+(x.extras.length?' + '+x.extras.join(', '):'');
+   }else if(x.type==='boisson'){
+    if(!own(DRINKS,x.id))return json({error:'Boisson invalide'},400);
+    [label,unit]=DRINKS[x.id];
+   }else if(x.type==='dessert'){
+    if(!own(DESSERTS,x.id))return json({error:'Dessert invalide'},400);
+    [label,unit]=DESSERTS[x.id];
+   }else if(x.type==='formule'){
+    if(!own(FORMULAS,x.id))return json({error:'Formule invalide'},400);
+    const [name,basePrice,np,nd,ns]=FORMULAS[x.id];
+    if(!Array.isArray(x.plates)||x.plates.length!==np||x.plates.some(p=>!validPlate(p))||!Array.isArray(x.drinks)||x.drinks.length!==nd||x.drinks.some(id=>!own(DRINKS,id))||!Array.isArray(x.desserts)||x.desserts.length!==ns||x.desserts.some(id=>!own(DESSERTS,id)))return json({error:'Composition de formule invalide'},400);
+    unit=basePrice+x.plates.reduce((n,p)=>n+SURCHARGE[p.recipe]+(p.base==='gnocchis'?100:0),0);
+    label=name+' : '+x.plates.map(p=>LABELS[p.recipe]+' '+(p.pasta||'gnocchis')).join(', ')+(nd?' • '+x.drinks.map(id=>DRINKS[id][0]).join(', '):'')+(ns?' • '+x.desserts.map(id=>DESSERTS[id][0]).join(', '):'');
+   }else return json({error:'Article inconnu'},400);
+   subtotal+=unit*x.qty;items.push({qty:x.qty,amount:unit,label});
   }
-};
+  if(subtotal<1||subtotal>200000)return json({error:'Montant de commande invalide'},400);
+  const delivery=body.delivery||'retrait';const rules={'retrait':[0,0],'0-5':[2000,390],'5-8':[3000,590],'8-12':[4000,790]};if(!(delivery in rules))return json({error:'Zone invalide'},400);if(subtotal<rules[delivery][0])return json({error:'Minimum de commande non atteint pour cette zone'},400);
+  const fee=delivery==='0-5'&&subtotal>=4500?0:rules[delivery][1];const total=subtotal+fee;
+  const raw=body.customer||{};const customer={name:String(raw.name||'').trim().slice(0,80),phone:String(raw.phone||'').trim().slice(0,40),email:String(raw.email||'').trim().slice(0,120),address:String(raw.address||'').trim().slice(0,180),notes:String(raw.notes||'').trim().slice(0,300)};
+  if(!customer.name||!customer.phone||!/^\S+@\S+\.\S+$/.test(customer.email)||(delivery!=='retrait'&&!customer.address))return json({error:'Coordonnées incomplètes'},400);
+  const orderId='PL-'+crypto.randomUUID();const order={orderId,items,customer,delivery,subtotal,fee,total,status:'pending',notified:false,createdAt:new Date().toISOString()};
+  const payload={amount:{currency:'EUR',value:cents(total)},description:'PASTA LAB '+orderId,redirectUrl:`${ORIGIN}/?paiement=retour&commande=${encodeURIComponent(orderId)}`,webhookUrl:`${url.origin}/mollie-webhook`,metadata:{orderId}};
+  try{const r=await fetch('https://api.mollie.com/v2/payments',{method:'POST',headers:{Authorization:'Bearer '+env.MOLLIE_API_KEY,'Content-Type':'application/json'},body:JSON.stringify(payload)});const result=await r.json();if(!r.ok||!result.id||!result._links?.checkout?.href)return json({error:'Impossible de créer le paiement'},502);order.paymentId=result.id;await env.ORDERS.put('payment:'+result.id,JSON.stringify(order));return json({ok:true,orderId,total:cents(total),checkoutUrl:result._links.checkout.href})}catch{return json({error:'Service de paiement temporairement indisponible'},502)}
+ }
+ if(request.method==='POST'&&url.pathname==='/mollie-webhook'){
+  const form=await request.formData().catch(()=>null);const id=form?.get('id');if(typeof id!=='string'||!/^tr_[a-zA-Z0-9]+$/.test(id))return new Response('invalid',{status:400});
+  const stored=await env.ORDERS.get('payment:'+id);if(!stored)return new Response('unknown',{status:404});const order=JSON.parse(stored);
+  try{const payment=await mollie(id,env);if(payment.id!==id||payment.metadata?.orderId!==order.orderId||payment.amount?.currency!=='EUR'||payment.amount?.value!==cents(order.total))return new Response('mismatch',{status:400});
+   if(payment.status!=='paid'){order.status=payment.status;await env.ORDERS.put('payment:'+id,JSON.stringify(order));return new Response('ok')}
+   order.status='paid';await env.ORDERS.put('payment:'+id,JSON.stringify(order));
+   // KV is eventually consistent: for stronger exactly-once guarantees use Durable Objects / a queue.
+   if(!order.notified){await notify(order,env);order.notified=true;await env.ORDERS.put('payment:'+id,JSON.stringify(order))}
+   return new Response('ok');
+  }catch(e){console.error('Webhook failure',String(e));return new Response('retry',{status:500})}
+ }
+ return json({error:'Route inconnue'},404);
+}};
