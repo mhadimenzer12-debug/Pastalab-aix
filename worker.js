@@ -7,7 +7,24 @@ const cors={'Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Methods':
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:cors});
 const cents=n=>(n/100).toFixed(2);
 async function mollie(id,env){const r=await fetch('https://api.mollie.com/v2/payments/'+encodeURIComponent(id),{headers:{Authorization:'Bearer '+env.MOLLIE_API_KEY}});if(!r.ok)throw Error('Mollie '+r.status);return r.json()}
-async function notify(order,env){if(!env.RESEND_API_KEY||!env.MAIL_FROM)throw Error('E-mail non configuré');const lines=order.items.map(x=>`${x.qty} × ${x.label} — ${cents(x.amount*x.qty)} €`).join('\n');const body=`Commande payée ${order.orderId}\n\n${lines}\n\nTotal : ${cents(order.total)} €\nMode : ${order.delivery}\nNom : ${order.customer.name}\nTéléphone : ${order.customer.phone}\nE-mail : ${order.customer.email}\nAdresse : ${order.customer.address}\nNote : ${order.customer.notes}`;const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+env.RESEND_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({from:env.MAIL_FROM,to:['mm.pastalab@gmail.com'],subject:'Commande Pasta Lab payée — '+order.orderId,text:body})});if(!r.ok)throw Error('Échec e-mail '+r.status)}
+async function sendEmail(env,to,subject,body){
+ const r=await fetch('https://api.resend.com/emails',{
+  method:'POST',
+  headers:{Authorization:'Bearer '+env.RESEND_API_KEY,'Content-Type':'application/json'},
+  body:JSON.stringify({from:env.MAIL_FROM,to:[to],subject,text:body})
+ });
+ if(!r.ok)throw Error('Échec e-mail '+r.status+' : '+(await r.text()).slice(0,250));
+}
+async function notify(order,env){
+ if(!env.RESEND_API_KEY||!env.MAIL_FROM)throw Error('E-mail non configuré');
+ const lines=order.items.map(x=>`${x.qty} × ${x.label} — ${cents(x.amount*x.qty)} €`).join('\n');
+ const merchantBody=`Commande payée ${order.orderId}\n\n${lines}\n\nTotal : ${cents(order.total)} €\nMode : ${order.delivery}\nNom : ${order.customer.name}\nTéléphone : ${order.customer.phone}\nE-mail : ${order.customer.email}\nAdresse : ${order.customer.address}\nNote : ${order.customer.notes}`;
+ await sendEmail(env,'mm.pastalab@gmail.com','Commande Pasta Lab payée — '+order.orderId,merchantBody);
+ const customerBody=`Bonjour ${order.customer.name},\n\nMerci pour votre commande chez Pasta Lab !\nVotre paiement a bien été confirmé.\n\nCommande : ${order.orderId}\n\n${lines}\n\nTotal payé : ${cents(order.total)} €\nMode : ${order.delivery==='retrait'?'Retrait sur place':'Livraison'}\n\nÀ très bientôt,\nL’équipe Pasta Lab`;
+ // Le mail marchand est déjà parti : ne pas bloquer la confirmation du paiement si le mail client échoue.
+ try {await sendEmail(env,order.customer.email,'Confirmation de votre commande Pasta Lab — '+order.orderId,customerBody)}
+ catch(e){console.error('Échec confirmation client',order.orderId,String(e))}
+}
 export default {async fetch(request,env){
  const url=new URL(request.url);
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
