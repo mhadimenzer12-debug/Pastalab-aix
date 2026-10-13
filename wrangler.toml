@@ -5,3 +5,5 @@ compatibility_date = "2026-10-13"
 [[kv_namespaces]]
 binding = "ORDERS"
 id = "ac231994aa214d089785556ebb8069df"
+[vars]
+MAIL_FROM = "commandes@pastalab-aix.com"
